@@ -47,4 +47,4 @@ class Varasto:
 
 
 
-hajhankjahfkajnfifsa
+
