@@ -1,4 +1,4 @@
 # ohtuvarasto
 OH_TU
 
-https://github.com/bladeefan2011/ohtuvarasto/actions/workflows/WORKFLOW-FILE/badge.svg
+[![CI](https://github.com/bladeefan2011/ohtuvarasto/actions/workflows/main.yml/badge.svg)](https://github.com/bladeefan2011/ohtuvarasto/actions/workflows/main.yml)
