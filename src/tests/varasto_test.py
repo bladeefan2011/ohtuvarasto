@@ -76,3 +76,4 @@ class TestVarasto(unittest.TestCase):
         self.assertAlmostEqual(varasto.tilavuus, 10.0)
 
 
+
