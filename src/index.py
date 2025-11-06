@@ -57,14 +57,16 @@ def testaa_lisaykset(mehua, olutta):
     mehua.lisaa_varastoon(-666.0)
     print(f"Mehuvarasto: {mehua}")
 
-def testaa_otot(mehua, olutta):
-    """Testaa ylisuuret ja negatiiviset otot."""
+def testaa_oluen_otot(olutta):
+    """Testaa oluen ylisuuret otot."""
     print(f"Olutvarasto: {olutta}")
     print("olutta.ota_varastosta(1000.0)")
     saatiin = olutta.ota_varastosta(1000.0)
     print(f"saatiin {saatiin}")
     print(f"Olutvarasto: {olutta}")
 
+def testaa_mehun_otot(mehua):
+    """Testaa mehun negatiiviset otot."""
     print(f"Mehuvarasto: {mehua}")
     print("mehua.otaVarastosta(-32.9)")
     saatiin = mehua.ota_varastosta(-32.9)
@@ -81,9 +83,10 @@ def main():
     testaa_getterit(olutta)
     testaa_setterit(mehua)
     testaa_virhetilanteet()
-    # Jaettiin liian pitkä funktio (testaa_ylivuodot_...) kahdeksi
     testaa_lisaykset(mehua, olutta)
-    testaa_otot(mehua, olutta)
+    # Jaettiin liian pitkä funktio (testaa_otot) kahdeksi
+    testaa_oluen_otot(olutta)
+    testaa_mehun_otot(mehua)
 
 if __name__ == "__main__":
     main()

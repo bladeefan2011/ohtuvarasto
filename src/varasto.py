@@ -23,10 +23,10 @@ class Varasto:
             # virheellinen, nollataan
             self.tilavuus = 0.0
 
-        # Alustetaan saldo __init__:ssä W0201-virheen korjaamiseksi
+        # Alustetaan saldo __init__:ssä W0201-virheen
         self.saldo = 0.0
 
-        # Ulkoistetaan saldon asetus omaan metodiin (max-statements-säännön takia)
+        # Ulkoistetaan saldon asetus omaan metodiin
         self._aseta_alkusaldo(alku_saldo)
 
     def _aseta_alkusaldo(self, alku_saldo):
@@ -81,3 +81,4 @@ class Varasto:
         # Rivitetty C0301 (line-too-long) -virheen korjaamiseksi
         return f"saldo = {self.saldo}, " \
                f"vielä tilaa {self.paljonko_mahtuu()}"
+    
