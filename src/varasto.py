@@ -1,50 +1,70 @@
-class Varasto:
-    def __init__(self, tilavuus, alku_saldo = 0):
-        if tilavuus > 0.0:
-            self.tilavuus = tilavuus
-        else:
-            # virheellinen, nollataan
-            self.tilavuus = 0.0
+from varasto import Varasto
 
-        if alku_saldo < 0.0:
-            # virheellinen, nollataan
-            self.saldo = 0.0
-        elif alku_saldo <= tilavuus:
-            # mahtuu
-            self.saldo = alku_saldo
-        else:
-            # täyteen ja ylimäärä hukkaan!
-            self.saldo = tilavuus
+def alusta_varastot():
+    mehua = Varasto(100.0)
+    olutta = Varasto(100.0, 20.2)
+    return mehua, olutta
 
-    # huom: ominaisuus voidaan myös laskea. Ei tarvita erillistä kenttää viela_tilaa tms.
-    def paljonko_mahtuu(self):
-        return self.tilavuus - self.saldo
+def tulosta_varastot(otsikko, mehua, olutta):
+    print(otsikko)
+    print(f"Mehuvarasto: {mehua}")
+    print(f"Olutvarasto: {olutta}")
 
-    def lisaa_varastoon(self, maara):
-        if maara < 0:
-            return
-        if maara <= self.paljonko_mahtuu():
-            self.saldo = self.saldo + maara
-        else:
-            self.saldo = self.tilavuus
+def testaa_getterit(olutta):
+    print("Olut getterit:")
+    print(f"saldo = {olutta.saldo}")
+    print(f"tilavuus = {olutta.tilavuus}")
+    print(f"paljonko_mahtuu = {olutta.paljonko_mahtuu()}")
 
-    def ota_varastosta(self, maara):
-        if maara < 0:
-            return 0.0
-        if maara > self.saldo:
-            kaikki_mita_voidaan = self.saldo
-            self.saldo = 0.0
+def testaa_setterit(mehua):
+    print("Mehu setterit:")
+    print("Lisätään 50.7")
+    mehua.lisaa_varastoon(50.7)
+    print(f"Mehuvarasto: {mehua}")
+    print("Otetaan 3.14")
+    mehua.ota_varastosta(3.14)
+    print(f"Mehuvarasto: {mehua}")
 
-            return kaikki_mita_voidaan
+def testaa_virhetilanteet():
+    print("Virhetilanteita:")
+    print("Varasto(-100.0);")
+    huono = Varasto(-100.0)
+    print(huono)
 
-        self.saldo = self.saldo - maara
+    print("Varasto(100.0, -50.7)")
+    huono = Varasto(100.0, -50.7)
+    print(huono)
 
-        return maara
+def testaa_ylivuodot_ja_negatiiviset(mehua, olutta):
+    tulosta_varastot(f"Olutvarasto: {olutta}", mehua, olutta)
+    print("olutta.lisaa_varastoon(1000.0)")
+    olutta.lisaa_varastoon(1000.0)
+    print(f"Olutvarasto: {olutta}")
 
-    def __str__(self):
-        return f"saldo = {self.saldo}, vielä tilaa {self.paljonko_mahtuu()}"
+    print(f"Mehuvarasto: {mehua}")
+    print("mehua.lisaa_varastoon(-666.0)")
+    mehua.lisaa_varastoon(-666.0)
+    print(f"Mehuvarasto: {mehua}")
 
+    print(f"Olutvarasto: {olutta}")
+    print("olutta.ota_varastosta(1000.0)")
+    saatiin = olutta.ota_varastosta(1000.0)
+    print(f"saatiin {saatiin}")
+    print(f"Olutvarasto: {olutta}")
 
+    print(f"Mehuvarasto: {mehua}")
+    print("mehua.otaVarastosta(-32.9)")
+    saatiin = mehua.ota_varastosta(-32.9)
+    print(f"saatiin {saatiin}")
+    print(f"Mehuvarasto: {mehua}")
 
+def main():
+    mehua, olutta = alusta_varastot()
+    tulosta_varastot("Luonnin jälkeen:", mehua, olutta)
+    testaa_getterit(olutta)
+    testaa_setterit(mehua)
+    testaa_virhetilanteet()
+    testaa_ylivuodot_ja_negatiiviset(mehua, olutta)
 
-
+if __name__ == "__main__":
+    main()
