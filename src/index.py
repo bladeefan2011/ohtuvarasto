@@ -1,20 +1,13 @@
 from varasto import Varasto
 
-def funktio_jolla_liikaa_argumentteja(arg1, arg2, arg3, arg4, arg5, arg6):
-    """Tämä funktio rikkoo max-args -sääntöä."""
-    print(f"Rikottiin max-args: {arg1}{arg2}{arg3}{arg4}{arg5}{arg6}")
-
 
 def main():
-    
     mehua = Varasto(100.0)
     olutta = Varasto(100.0, 20.2)
 
     print("Luonnin jälkeen:")
     print(f"Mehuvarasto: {mehua}")
-
-    
-     print(f"Olutvarasto: {olutta}")
+    print(f"Olutvarasto: {olutta}")
 
     print("Olut getterit:")
     print(f"saldo = {olutta.saldo}")
@@ -59,18 +52,6 @@ def main():
     saatiin = mehua.ota_varastosta(-32.9)
     print(f"saatiin {saatiin}")
     print(f"Mehuvarasto: {mehua}")
-
-   
-    print("Rikotaan max-nested-blocks:")
-    for i in range(1): 
-        if i >= 0: 
-            if i >= 0: 
-                print("Tämä on kolmas sisennystaso ja rikkoo säännön.")
-
-    
-    funktio_jolla_liikaa_argumentteja(1, 2, 3, 4, 5, 6)
-
-    print("Tämä on tahallaan erittäin, erittäin, ERITTÄIN pitkä rivi, joka on suunniteltu vain ja ainoastaan rikkomaan Pylintin 80 merkin pituinen max-line-length -sääntö, jotta näemme 'line-too-long' -virheilmoituksen.")
 
 
 if __name__ == "__main__":
