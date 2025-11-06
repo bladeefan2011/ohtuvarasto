@@ -81,4 +81,4 @@ class Varasto:
         # Rivitetty C0301 (line-too-long) -virheen korjaamiseksi
         return f"saldo = {self.saldo}, " \
                f"vielä tilaa {self.paljonko_mahtuu()}"
-    
+
