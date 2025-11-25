@@ -73,6 +73,11 @@ A web-based inventory management application that allows users to manage multipl
    python run.py
    ```
 
+   For development with debug mode enabled:
+   ```bash
+   FLASK_DEBUG=true python run.py
+   ```
+
 5. Open your browser and navigate to `http://localhost:5000`
 
 ## Database Initialization

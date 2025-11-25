@@ -36,7 +36,7 @@
                             </a>
                             <form action="{{ url_for('main.delete_warehouse', warehouse_id=warehouse.id) }}" 
                                   method="POST" 
-                                  style="display: inline;"
+                                  class="d-inline"
                                   onsubmit="return confirm('Are you sure you want to delete this warehouse and all its items?');">
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     Delete
