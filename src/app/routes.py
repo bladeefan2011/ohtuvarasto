@@ -6,11 +6,55 @@ warehouses and items in the inventory system.
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash
+from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.models import Warehouse, Item
 from app.forms import WarehouseForm, ItemForm
 
 main_bp = Blueprint('main', __name__)
+
+
+def _handle_db_error(error, operation="operation"):
+    """Handle database errors and flash a user-friendly message."""
+    db.session.rollback()
+    flash(f'Database error during {operation}. Please try again.', 'danger')
+    print(f"Database error: {error}")
+
+
+def _save_warehouse(warehouse, form):
+    """Save warehouse data from form and commit to database."""
+    warehouse.name = form.name.data
+    warehouse.location = form.location.data
+    db.session.commit()
+
+
+def _save_item(item, form):
+    """Save item data from form and commit to database."""
+    item.name = form.name.data
+    item.description = form.description.data
+    item.quantity = form.quantity.data
+    db.session.commit()
+
+
+def _create_item_from_form(form, warehouse_id):
+    """Create a new Item object from form data."""
+    return Item(
+        name=form.name.data,
+        description=form.description.data,
+        quantity=form.quantity.data,
+        warehouse_id=warehouse_id
+    )
+
+
+def _update_item_quantity(item, delta):
+    """Update item quantity by delta and commit. Returns success."""
+    try:
+        item.quantity += delta
+        db.session.commit()
+        return True
+    except SQLAlchemyError as e:
+        _handle_db_error(e, "quantity update")
+        return False
 
 
 @main_bp.route('/')
@@ -25,14 +69,17 @@ def create_warehouse():
     """Create a new warehouse."""
     form = WarehouseForm()
     if form.validate_on_submit():
-        warehouse = Warehouse(
-            name=form.name.data,
-            location=form.location.data
-        )
-        db.session.add(warehouse)
-        db.session.commit()
-        flash('Warehouse created successfully!', 'success')
-        return redirect(url_for('main.index'))
+        try:
+            warehouse = Warehouse(
+                name=form.name.data,
+                location=form.location.data
+            )
+            db.session.add(warehouse)
+            db.session.commit()
+            flash('Warehouse created successfully!', 'success')
+            return redirect(url_for('main.index'))
+        except SQLAlchemyError as e:
+            _handle_db_error(e, "warehouse creation")
     return render_template(
         'warehouse_form.html',
         form=form,
@@ -53,11 +100,12 @@ def edit_warehouse(warehouse_id):
     warehouse = Warehouse.query.get_or_404(warehouse_id)
     form = WarehouseForm(obj=warehouse)
     if form.validate_on_submit():
-        warehouse.name = form.name.data
-        warehouse.location = form.location.data
-        db.session.commit()
-        flash('Warehouse updated successfully!', 'success')
-        return redirect(url_for('main.index'))
+        try:
+            _save_warehouse(warehouse, form)
+            flash('Warehouse updated successfully!', 'success')
+            return redirect(url_for('main.index'))
+        except SQLAlchemyError as e:
+            _handle_db_error(e, "warehouse update")
     return render_template(
         'warehouse_form.html',
         form=form,
@@ -69,10 +117,26 @@ def edit_warehouse(warehouse_id):
 def delete_warehouse(warehouse_id):
     """Delete a warehouse and all its items."""
     warehouse = Warehouse.query.get_or_404(warehouse_id)
-    db.session.delete(warehouse)
-    db.session.commit()
-    flash('Warehouse deleted successfully!', 'success')
+    try:
+        db.session.delete(warehouse)
+        db.session.commit()
+        flash('Warehouse deleted successfully!', 'success')
+    except SQLAlchemyError as e:
+        _handle_db_error(e, "warehouse deletion")
     return redirect(url_for('main.index'))
+
+
+def _add_item_and_redirect(form, wh_id):
+    """Add a new item from form and redirect to warehouse detail."""
+    try:
+        item = _create_item_from_form(form, wh_id)
+        db.session.add(item)
+        db.session.commit()
+        flash('Item added successfully!', 'success')
+        return redirect(url_for('main.warehouse_detail', warehouse_id=wh_id))
+    except SQLAlchemyError as e:
+        _handle_db_error(e, "item creation")
+        return None
 
 
 @main_bp.route('/warehouse/<int:wh_id>/item/new', methods=['GET', 'POST'])
@@ -81,22 +145,11 @@ def create_item(wh_id):
     warehouse = Warehouse.query.get_or_404(wh_id)
     form = ItemForm()
     if form.validate_on_submit():
-        item = Item(
-            name=form.name.data,
-            description=form.description.data,
-            quantity=form.quantity.data,
-            warehouse_id=warehouse.id
-        )
-        db.session.add(item)
-        db.session.commit()
-        flash('Item added successfully!', 'success')
-        wh_id = warehouse.id
-        return redirect(url_for('main.warehouse_detail', warehouse_id=wh_id))
+        result = _add_item_and_redirect(form, warehouse.id)
+        if result:
+            return result
     return render_template(
-        'item_form.html',
-        form=form,
-        warehouse=warehouse,
-        title='Add Item'
+        'item_form.html', form=form, warehouse=warehouse, title='Add Item'
     )
 
 
@@ -106,14 +159,15 @@ def edit_item(item_id):
     item = Item.query.get_or_404(item_id)
     form = ItemForm(obj=item)
     if form.validate_on_submit():
-        item.name = form.name.data
-        item.description = form.description.data
-        item.quantity = form.quantity.data
-        db.session.commit()
-        flash('Item updated successfully!', 'success')
-        return redirect(
-            url_for('main.warehouse_detail', warehouse_id=item.warehouse_id)
-        )
+        try:
+            _save_item(item, form)
+            flash('Item updated successfully!', 'success')
+            wh_id = item.warehouse_id
+            return redirect(
+                url_for('main.warehouse_detail', warehouse_id=wh_id)
+            )
+        except SQLAlchemyError as e:
+            _handle_db_error(e, "item update")
     return render_template(
         'item_form.html',
         form=form,
@@ -127,9 +181,12 @@ def delete_item(item_id):
     """Delete an item from a warehouse."""
     item = Item.query.get_or_404(item_id)
     warehouse_id = item.warehouse_id
-    db.session.delete(item)
-    db.session.commit()
-    flash('Item deleted successfully!', 'success')
+    try:
+        db.session.delete(item)
+        db.session.commit()
+        flash('Item deleted successfully!', 'success')
+    except SQLAlchemyError as e:
+        _handle_db_error(e, "item deletion")
     return redirect(url_for('main.warehouse_detail', warehouse_id=warehouse_id))
 
 
@@ -137,9 +194,9 @@ def delete_item(item_id):
 def increase_quantity(item_id):
     """Increase the quantity of an item by 1."""
     item = Item.query.get_or_404(item_id)
-    item.quantity += 1
-    db.session.commit()
-    flash(f'Increased {item.name} quantity to {item.quantity}.', 'success')
+    if _update_item_quantity(item, 1):
+        msg = f'Increased {item.name} quantity to {item.quantity}.'
+        flash(msg, 'success')
     wh_id = item.warehouse_id
     return redirect(url_for('main.warehouse_detail', warehouse_id=wh_id))
 
@@ -149,9 +206,9 @@ def decrease_quantity(item_id):
     """Decrease the quantity of an item by 1 (minimum 0)."""
     item = Item.query.get_or_404(item_id)
     if item.quantity > 0:
-        item.quantity -= 1
-        db.session.commit()
-        flash(f'Decreased {item.name} quantity to {item.quantity}.', 'success')
+        if _update_item_quantity(item, -1):
+            msg = f'Decreased {item.name} quantity to {item.quantity}.'
+            flash(msg, 'success')
     else:
         flash(f'{item.name} quantity is already at 0.', 'warning')
     wh_id = item.warehouse_id

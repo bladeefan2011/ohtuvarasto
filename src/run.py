@@ -17,4 +17,14 @@ if __name__ == '__main__':
     # Debug mode should only be enabled in development environment
     # via the FLASK_DEBUG environment variable
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    app.run(debug=debug_mode, host='0.0.0.0', port=5000)
+    host = os.environ.get('FLASK_HOST', '127.0.0.1')
+
+    # Security check: refuse to run with debug mode on all interfaces
+    if debug_mode and host == '0.0.0.0':
+        raise RuntimeError(
+            "Refusing to run with debug=True and host='0.0.0.0'. "
+            "This is unsafe and can allow arbitrary code execution. "
+            "Use FLASK_HOST=127.0.0.1 for debug mode or disable debug."
+        )
+
+    app.run(debug=debug_mode, host=host, port=5000)

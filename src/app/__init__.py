@@ -6,6 +6,8 @@ with SQLAlchemy database and all necessary routes.
 """
 
 import os
+import secrets
+import warnings
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
@@ -19,13 +21,34 @@ def _get_database_uri(config_name, basedir):
     return 'sqlite:///' + os.path.join(basedir, 'inventory.db')
 
 
+def _get_secret_key(config_name):
+    """Get or generate a secret key with appropriate warnings."""
+    secret_key = os.environ.get('SECRET_KEY')
+    if secret_key:
+        return secret_key
+    # No SECRET_KEY set - handle based on environment
+    if config_name == 'production':
+        raise RuntimeError(
+            "SECRET_KEY environment variable must be set in production. "
+            "Generate one with: python -c "
+            "\"import secrets; print(secrets.token_hex(32))\""
+        )
+    # Development/testing: generate random key with warning
+    warnings.warn(
+        "No SECRET_KEY set. Using randomly generated key. "
+        "Set SECRET_KEY environment variable for persistent sessions.",
+        UserWarning
+    )
+    return secrets.token_hex(32)
+
+
 def _configure_app(app, config_name):
     """Configure Flask application settings."""
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = \
         _get_database_uri(config_name, basedir)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
+    app.config['SECRET_KEY'] = _get_secret_key(config_name)
 
 
 def create_app(config_name='development'):
