@@ -20,7 +20,8 @@ disable=raw-checker-failed,
     	missing-module-docstring,
     	missing-class-docstring,
     	missing-function-docstring,
-    	trailing-whitespace
+    	trailing-whitespace,
+        cyclic-import
 
 [FORMAT]
 max-line-length = 80
