@@ -213,3 +213,6 @@ def decrease_quantity(item_id):
         flash(f'{item.name} quantity is already at 0.', 'warning')
     wh_id = item.warehouse_id
     return redirect(url_for('main.warehouse_detail', warehouse_id=wh_id))
+
+
+# fortnite
